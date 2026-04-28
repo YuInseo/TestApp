@@ -49,7 +49,9 @@ data class AppSettings(
     val showSidebarCounts: Boolean = true,
     val hideNotes: Boolean = false,
     val showListColor: Boolean = true,
-    val completedStyle: CompletedStyle = CompletedStyle.CHECKBOX
+    val completedStyle: CompletedStyle = CompletedStyle.CHECKBOX,
+    val enabledTabIds: List<String> = listOf("tasks", "calendar", "matrix", "focus"),
+    val maxTabs: Int = 5
 )
 
 class SettingsRepository(private val context: Context) {
@@ -73,7 +75,10 @@ class SettingsRepository(private val context: Context) {
             showListColor = p[KEY_SHOW_LIST_COLOR] ?: true,
             completedStyle = runCatching {
                 CompletedStyle.valueOf(p[KEY_COMPLETED_STYLE] ?: "CHECKBOX")
-            }.getOrDefault(CompletedStyle.CHECKBOX)
+            }.getOrDefault(CompletedStyle.CHECKBOX),
+            enabledTabIds = (p[KEY_ENABLED_TABS] ?: "tasks,calendar,matrix,focus")
+                .split(",").map { it.trim() }.filter { it.isNotEmpty() },
+            maxTabs = p[KEY_MAX_TABS] ?: 5
         )
     }
 
@@ -96,6 +101,10 @@ class SettingsRepository(private val context: Context) {
         context.dataStore.edit { it[KEY_SHOW_LIST_COLOR] = value }
     suspend fun setCompletedStyle(style: CompletedStyle) =
         context.dataStore.edit { it[KEY_COMPLETED_STYLE] = style.name }
+    suspend fun setEnabledTabs(ids: List<String>) =
+        context.dataStore.edit { it[KEY_ENABLED_TABS] = ids.joinToString(",") }
+    suspend fun setMaxTabs(value: Int) =
+        context.dataStore.edit { it[KEY_MAX_TABS] = value }
 
     companion object {
         private val KEY_THEME = stringPreferencesKey("theme")
@@ -111,5 +120,7 @@ class SettingsRepository(private val context: Context) {
         private val KEY_HIDE_NOTES = booleanPreferencesKey("hide_notes")
         private val KEY_SHOW_LIST_COLOR = booleanPreferencesKey("show_list_color")
         private val KEY_COMPLETED_STYLE = stringPreferencesKey("completed_style")
+        private val KEY_ENABLED_TABS = stringPreferencesKey("enabled_tabs")
+        private val KEY_MAX_TABS = intPreferencesKey("max_tabs")
     }
 }

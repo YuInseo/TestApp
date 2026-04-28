@@ -15,6 +15,7 @@ import com.example.testapp.ui.feature.focus.FocusViewModel
 import com.example.testapp.ui.feature.habits.HabitsViewModel
 import com.example.testapp.ui.feature.appearance.AppearanceViewModel
 import com.example.testapp.ui.feature.lists.ListsViewModel
+import com.example.testapp.ui.feature.tabbarconfig.TabBarConfigViewModel
 import com.example.testapp.ui.feature.matrix.MatrixViewModel
 import com.example.testapp.ui.feature.settings.SettingsViewModel
 import com.example.testapp.ui.feature.stats.StatsViewModel
@@ -52,6 +53,7 @@ val appModule = module {
     viewModel { FocusViewModel(get(), get()) }
     viewModel { SettingsViewModel(get(), get()) }
     viewModel { AppearanceViewModel(get()) }
+    viewModel { TabBarConfigViewModel(get()) }
     viewModel { UpdateViewModel(get(), get()) }
     viewModel { HabitsViewModel(get()) }
     viewModel { StatsViewModel(get(), get()) }
