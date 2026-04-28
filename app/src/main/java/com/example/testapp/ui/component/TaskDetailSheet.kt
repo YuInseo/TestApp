@@ -1,4 +1,4 @@
-package com.example.testapp.ui.feature.matrix
+package com.example.testapp.ui.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

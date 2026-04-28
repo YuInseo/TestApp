@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.testapp.data.repository.TaskListRepository
 import com.example.testapp.data.repository.TaskRepository
 import com.example.testapp.data.repository.TagRepository
+import com.example.testapp.domain.model.Priority
 import com.example.testapp.domain.model.Tag
 import com.example.testapp.domain.model.Task
 import com.example.testapp.domain.model.TaskList
@@ -102,6 +103,27 @@ class TasksViewModel(
 
     fun toggleCompleted(task: Task) {
         viewModelScope.launch { taskRepo.setCompleted(task.id, !task.completed) }
+    }
+
+    fun update(
+        task: Task,
+        title: String? = null,
+        notes: String? = null,
+        listId: Long? = null,
+        priority: Priority? = null,
+        dueAt: Long? = null,
+        clearDueAt: Boolean = false
+    ) {
+        viewModelScope.launch {
+            val updated = task.copy(
+                title = title ?: task.title,
+                notes = notes ?: task.notes,
+                listId = listId ?: task.listId,
+                priority = priority ?: task.priority,
+                dueAt = if (clearDueAt) null else (dueAt ?: task.dueAt)
+            )
+            taskRepo.upsert(updated, task.tags.map { it.id }, task.subtasks)
+        }
     }
 
     fun quickAdd(title: String, listId: Long?) {

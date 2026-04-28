@@ -34,13 +34,18 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.testapp.domain.model.Task
 import com.example.testapp.ui.component.CompactTaskItem
+import com.example.testapp.ui.component.TaskDetailSheet
 import com.example.testapp.ui.theme.AppColors
 import com.example.testapp.util.DateUtils
 import org.koin.androidx.compose.koinViewModel
@@ -58,6 +63,7 @@ fun CalendarScreen(
     vm: CalendarViewModel = koinViewModel()
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
+    var detailTask by remember { mutableStateOf<Task?>(null) }
 
     Scaffold(
         topBar = {
@@ -114,9 +120,22 @@ fun CalendarScreen(
             DaySection(
                 date = state.selectedDate,
                 tasks = state.tasksOfDay,
-                onTaskClick = onTaskClick
+                onTaskClick = { task -> detailTask = task },
+                onToggle = vm::toggleCompleted
             )
         }
+    }
+
+    detailTask?.let { task ->
+        val live = state.tasksOfDay.firstOrNull { it.id == task.id } ?: task
+        TaskDetailSheet(
+            task = live,
+            allLists = state.lists,
+            onDismiss = { detailTask = null },
+            onUpdate = { title, notes, listId, priority ->
+                vm.update(live, title = title, notes = notes, listId = listId, priority = priority)
+            }
+        )
     }
 }
 
@@ -266,8 +285,9 @@ private fun DayCell(
 @Composable
 private fun DaySection(
     date: LocalDate,
-    tasks: List<com.example.testapp.domain.model.Task>,
-    onTaskClick: (Long) -> Unit
+    tasks: List<Task>,
+    onTaskClick: (Task) -> Unit,
+    onToggle: (Task) -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -293,8 +313,8 @@ private fun DaySection(
                 tasks.forEachIndexed { index, task ->
                     CompactTaskItem(
                         task = task,
-                        onToggle = { /* in calendar we just navigate */ },
-                        onClick = { onTaskClick(task.id) }
+                        onToggle = { onToggle(task) },
+                        onClick = { onTaskClick(task) }
                     )
                     if (index < tasks.lastIndex) {
                         HorizontalDivider(

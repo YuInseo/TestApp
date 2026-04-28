@@ -58,6 +58,7 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.testapp.domain.model.Task
 import com.example.testapp.ui.component.TaskCheckbox
+import com.example.testapp.ui.component.TaskDetailSheet
 import com.example.testapp.util.DateUtils
 import com.example.testapp.ui.theme.AppColors
 import org.koin.androidx.compose.koinViewModel

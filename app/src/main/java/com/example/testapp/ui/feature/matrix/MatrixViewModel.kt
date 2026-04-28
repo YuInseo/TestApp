@@ -65,20 +65,29 @@ class MatrixViewModel(
     fun toggle(task: Task) = viewModelScope.launch { repo.setCompleted(task.id, !task.completed) }
 
     fun moveToQuadrant(task: Task, quadrant: Quadrant) {
-        val (priority, dueAt) = quadrantDefaults(quadrant)
         viewModelScope.launch {
-            val effectiveDue = when (quadrant) {
-                Quadrant.Q1, Quadrant.Q3 -> dueAt
-                Quadrant.Q2, Quadrant.Q4 -> {
-                    val today0 = DateUtils.startOfDay()
-                    val tomorrow0 = DateUtils.addDays(today0, 1)
-                    if (task.dueAt != null && task.dueAt >= tomorrow0) task.dueAt else null
-                }
+            val today0 = DateUtils.startOfDay()
+            val tomorrow0 = DateUtils.addDays(today0, 1)
+            val currentlyUrgent = task.dueAt != null && task.dueAt < tomorrow0
+
+            val newPriority = when (quadrant) {
+                Quadrant.Q1, Quadrant.Q2 -> Priority.HIGH
+                Quadrant.Q3 -> Priority.LOW
+                Quadrant.Q4 -> Priority.NONE
             }
-            val tagIds = task.tags.map { it.id }
+            val newDueAt: Long? = when (quadrant) {
+                // Urgent quadrants: keep the user's existing time-of-day if already urgent.
+                Quadrant.Q1, Quadrant.Q3 ->
+                    if (currentlyUrgent) task.dueAt else DateUtils.endOfDay()
+                // Non-urgent quadrants: drop the dueAt only if it's currently urgent;
+                // otherwise preserve whatever the task had (null or future).
+                Quadrant.Q2 -> if (currentlyUrgent) null else task.dueAt
+                Quadrant.Q4 -> if (currentlyUrgent) null else task.dueAt
+            }
+
             repo.upsert(
-                task.copy(priority = priority, dueAt = effectiveDue),
-                tagIds,
+                task.copy(priority = newPriority, dueAt = newDueAt),
+                task.tags.map { it.id },
                 task.subtasks
             )
         }
