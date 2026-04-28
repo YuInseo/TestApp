@@ -30,11 +30,22 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Set up Gradle (wrapper + cache)
+      - name: Cache Gradle wrapper distribution
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/wrapper/dists
+          key: gradle-wrapper-${{ runner.os }}-${{ hashFiles('**/gradle-wrapper.properties') }}
+          restore-keys: gradle-wrapper-${{ runner.os }}-
+
+      - name: Set up Gradle (deps cache)
         uses: gradle/actions/setup-gradle@v3
         with:
           cache-read-only: false
           gradle-home-cache-cleanup: true
+          gradle-home-cache-includes: |
+            caches
+            notifications
+            wrapper
 
       - name: Cache Android SDK + AGP build cache
         uses: actions/cache@v4
@@ -47,6 +58,18 @@ jobs:
           key: android-build-cache-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', '**/libs.versions.toml') }}
           restore-keys: |
             android-build-cache-${{ runner.os }}-
+
+      - name: Cache project build outputs
+        uses: actions/cache@v4
+        with:
+          path: |
+            app/build/intermediates
+            app/build/generated/ksp
+            app/build/tmp/kotlin-classes
+          key: project-build-${{ runner.os }}-${{ github.ref_name }}-${{ github.sha }}
+          restore-keys: |
+            project-build-${{ runner.os }}-${{ github.ref_name }}-
+            project-build-${{ runner.os }}-
 
       - name: Compute version metadata (early)
         id: meta
@@ -72,7 +95,7 @@ jobs:
             -PappVersionCode=${{ steps.meta.outputs.code }} \
             -PappVersionName=${{ steps.meta.outputs.name }} \
             -PappGitSha=${{ steps.meta.outputs.sha }} \
-            --build-cache --parallel --stacktrace 2>&1 | tee build.log
+            --build-cache --parallel --daemon 2>&1 | tee build.log
           echo "exit=$?" > build.exit
 
       - name: Show build log inline
