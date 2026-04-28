@@ -39,12 +39,16 @@ class UpdateChecker(private val context: Context) {
 
     suspend fun fetchManifest(): VersionManifest? = withContext(Dispatchers.IO) {
         runCatching {
-            val url = URL(BuildConfig.VERSION_MANIFEST_URL)
+            val cacheBuster = "?_=" + System.currentTimeMillis()
+            val url = URL(BuildConfig.VERSION_MANIFEST_URL + cacheBuster)
             val conn = url.openConnection() as HttpURLConnection
             conn.connectTimeout = 7000
             conn.readTimeout = 10000
             conn.instanceFollowRedirects = true
+            conn.useCaches = false
             conn.setRequestProperty("User-Agent", "TickTickClone/${BuildConfig.VERSION_NAME}")
+            conn.setRequestProperty("Cache-Control", "no-cache, no-store, must-revalidate")
+            conn.setRequestProperty("Pragma", "no-cache")
             val text = conn.inputStream.bufferedReader().use { it.readText() }
             Json { ignoreUnknownKeys = true }.decodeFromString(VersionManifest.serializer(), text)
         }.getOrNull()

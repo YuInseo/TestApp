@@ -34,12 +34,31 @@ jobs:
         with:
           gradle-version: "8.7"
 
+      - name: Compute version metadata (early)
+        id: meta
+        run: |
+          CODE=$(git rev-list --count HEAD)
+          NAME="1.0.${CODE}"
+          SHA=$(git rev-parse --short HEAD)
+          echo "code=$CODE" >> $GITHUB_OUTPUT
+          echo "name=$NAME" >> $GITHUB_OUTPUT
+          echo "sha=$SHA" >> $GITHUB_OUTPUT
+          echo "Will build versionCode=$CODE versionName=$NAME sha=$SHA"
+
       - name: Build debug APK
         id: build
         continue-on-error: true
+        env:
+          APP_VERSION_CODE: ${{ steps.meta.outputs.code }}
+          APP_VERSION_NAME: ${{ steps.meta.outputs.name }}
+          APP_GIT_SHA: ${{ steps.meta.outputs.sha }}
         run: |
           set -o pipefail
-          gradle assembleDebug --no-daemon --stacktrace --info 2>&1 | tee build.log
+          gradle assembleDebug \
+            -PappVersionCode=${{ steps.meta.outputs.code }} \
+            -PappVersionName=${{ steps.meta.outputs.name }} \
+            -PappGitSha=${{ steps.meta.outputs.sha }} \
+            --no-daemon --stacktrace --info 2>&1 | tee build.log
           echo "exit=$?" > build.exit
 
       - name: Show build log inline
@@ -133,17 +152,6 @@ jobs:
               core.error('Issue creation failed: ' + (err.message || String(err)));
               core.error(JSON.stringify(err.response?.data || {}));
             }
-
-      - name: Compute version metadata
-        if: steps.build.outcome == 'success'
-        id: meta
-        run: |
-          CODE=$(git rev-list --count HEAD)
-          NAME="1.0.${CODE}"
-          SHA=$(git rev-parse --short HEAD)
-          echo "code=$CODE" >> $GITHUB_OUTPUT
-          echo "name=$NAME" >> $GITHUB_OUTPUT
-          echo "sha=$SHA" >> $GITHUB_OUTPUT
 
       - name: Stage release assets
         if: steps.build.outcome == 'success'

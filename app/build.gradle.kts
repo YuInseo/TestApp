@@ -36,9 +36,17 @@ fun gitShortSha(): String {
     }
 }
 
-val versionCodeValue = gitCommitCount()
-val versionNameValue = "1.0.$versionCodeValue"
-val gitSha = gitShortSha()
+val versionCodeValue: Int = (project.findProperty("appVersionCode") as? String)?.toIntOrNull()
+    ?: System.getenv("APP_VERSION_CODE")?.toIntOrNull()
+    ?: gitCommitCount()
+val versionNameValue: String = (project.findProperty("appVersionName") as? String)
+    ?: System.getenv("APP_VERSION_NAME")
+    ?: "1.0.$versionCodeValue"
+val gitSha: String = (project.findProperty("appGitSha") as? String)
+    ?: System.getenv("APP_GIT_SHA")
+    ?: gitShortSha()
+
+println("=== App version: code=$versionCodeValue name=$versionNameValue sha=$gitSha ===")
 
 android {
     namespace = "com.example.testapp"
