@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.background
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -71,7 +72,7 @@ fun TasksScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onMenuClick) {
-                        Icon(androidx.compose.material.icons.Icons.Filled.Menu, contentDescription = "메뉴")
+                        Icon(Icons.Filled.Menu, contentDescription = "메뉴")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
