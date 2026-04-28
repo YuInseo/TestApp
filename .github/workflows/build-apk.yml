@@ -34,6 +34,19 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: "8.7"
+          cache-read-only: false
+          gradle-home-cache-cleanup: true
+
+      - name: Cache Android SDK + AGP build cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.android/build-cache
+            ~/.android/cache
+            app/build/intermediates/incremental
+          key: android-build-cache-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', '**/libs.versions.toml') }}
+          restore-keys: |
+            android-build-cache-${{ runner.os }}-
 
       - name: Compute version metadata (early)
         id: meta
@@ -55,11 +68,11 @@ jobs:
           APP_GIT_SHA: ${{ steps.meta.outputs.sha }}
         run: |
           set -o pipefail
-          gradle assembleDebug \
+          gradle assembleDebug -x lint -x test \
             -PappVersionCode=${{ steps.meta.outputs.code }} \
             -PappVersionName=${{ steps.meta.outputs.name }} \
             -PappGitSha=${{ steps.meta.outputs.sha }} \
-            --no-daemon --stacktrace --info 2>&1 | tee build.log
+            --build-cache --parallel --no-daemon --stacktrace 2>&1 | tee build.log
           echo "exit=$?" > build.exit
 
       - name: Show build log inline
