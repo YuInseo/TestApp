@@ -48,18 +48,28 @@ jobs:
           name: build-log
           path: build*.log
 
-      - name: Publish build log to release on failure
+      - name: Open issue with build log on failure
         if: failure()
-        uses: softprops/action-gh-release@v2
+        uses: actions/github-script@v7
         with:
-          tag_name: latest-debug
-          name: Latest Debug Build
-          body: |
-            BUILD FAILED for ${{ github.sha }}.
-            See build-tail.log attached for last ~100KB of log output.
-          files: build-tail.log
-          prerelease: true
-          make_latest: "false"
+          script: |
+            const fs = require('fs');
+            let body = '';
+            try {
+              const log = fs.readFileSync('build.log', 'utf8');
+              const tail = log.length > 60000 ? log.slice(-60000) : log;
+              body = '```\n' + tail + '\n```';
+            } catch (e) {
+              body = 'Failed to read build.log: ' + String(e);
+            }
+            const sha = context.sha.substring(0, 7);
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Build failure for ${sha}`,
+              body: `Build failure for commit ${context.sha}\n\nLast ~60KB of build log:\n\n${body}`,
+              labels: ['build-failure']
+            });
 
       - name: Compute version metadata
         id: meta
