@@ -42,7 +42,10 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -52,6 +55,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.testapp.domain.model.TaskList
 import com.example.testapp.ui.component.CompactTaskItem
 import com.example.testapp.ui.component.EmptyState
+import com.example.testapp.ui.component.QuickAddSheet
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
@@ -65,6 +69,7 @@ fun TasksScreen(
     val state by vm.state.collectAsStateWithLifecycle()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    var showQuickAdd by remember { mutableStateOf(false) }
 
     val currentList: TaskList? = state.selectedListId?.let { id ->
         state.lists.firstOrNull { it.id == id }
@@ -112,7 +117,7 @@ fun TasksScreen(
             },
             floatingActionButton = {
                 FloatingActionButton(
-                    onClick = onAddTask,
+                    onClick = { showQuickAdd = true },
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
                 ) {
@@ -158,6 +163,24 @@ fun TasksScreen(
                 }
             }
         }
+    }
+
+    if (showQuickAdd) {
+        QuickAddSheet(
+            onDismiss = { showQuickAdd = false },
+            onSubmit = { title, listId, tagIds ->
+                vm.quickAddDetailed(title, listId, tagIds)
+            },
+            onOpenFullEditor = {
+                showQuickAdd = false
+                onAddTask()
+            },
+            lists = state.lists,
+            tags = state.tags,
+            initialListId = currentList?.id
+                ?: state.lists.firstOrNull { it.isInbox }?.id
+                ?: state.lists.firstOrNull()?.id
+        )
     }
 }
 

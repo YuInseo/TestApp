@@ -115,6 +115,17 @@ class TasksViewModel(
             )
         }
     }
+
+    fun quickAddDetailed(title: String, listId: Long, tagIds: List<Long>) {
+        if (title.isBlank() || listId == 0L) return
+        viewModelScope.launch {
+            taskRepo.upsert(
+                Task(title = title.trim(), listId = listId),
+                tagIds = tagIds,
+                subtasks = emptyList()
+            )
+        }
+    }
 }
 
 private data class Quint<A, B, C, D, E>(val a: A, val b: B, val c: C, val d: D, val e: E)
