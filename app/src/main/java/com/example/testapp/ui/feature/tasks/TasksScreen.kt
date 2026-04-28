@@ -15,38 +15,44 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.testapp.domain.model.Task
 import com.example.testapp.domain.model.TaskList
 import com.example.testapp.ui.component.CompactTaskItem
 import com.example.testapp.ui.component.EmptyState
-import com.example.testapp.util.DateUtils
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -57,202 +63,241 @@ fun TasksScreen(
     vm: TasksViewModel = koinViewModel()
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
-    var listMenuOpen by remember { mutableStateOf(false) }
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
 
     val currentList: TaskList? = state.selectedListId?.let { id ->
         state.lists.firstOrNull { it.id == id }
     }
     val title = currentList?.name ?: state.filter.label
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            ListsDrawer(
+                state = state,
+                onPickFilter = { f ->
+                    vm.setFilter(f); scope.launch { drawerState.close() }
+                },
+                onPickList = { id ->
+                    vm.selectList(id); scope.launch { drawerState.close() }
+                }
+            )
+        }
+    ) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = {
                         Text(
                             title,
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold
                         )
-                        IconButton(onClick = { listMenuOpen = true }) {
-                            Icon(Icons.Filled.ExpandMore, contentDescription = "목록 변경")
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                            Icon(Icons.Filled.Menu, contentDescription = "목록")
                         }
-                        DropdownMenu(
-                            expanded = listMenuOpen,
-                            onDismissRequest = { listMenuOpen = false }
-                        ) {
-                            SmartFilter.entries.forEach { f ->
-                                DropdownMenuItem(
-                                    text = { Text("${f.emoji} ${f.label}") },
-                                    onClick = {
-                                        vm.setFilter(f); listMenuOpen = false
-                                    }
-                                )
-                            }
-                            HorizontalDivider()
-                            state.lists.forEach { list ->
-                                DropdownMenuItem(
-                                    text = { Text(list.name) },
-                                    onClick = {
-                                        vm.selectList(list.id); listMenuOpen = false
-                                    }
-                                )
-                            }
+                    },
+                    actions = {
+                        IconButton(onClick = { /* options */ }) {
+                            Icon(Icons.Filled.MoreVert, contentDescription = "옵션")
                         }
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { /* sort/options */ }) {
-                        Icon(Icons.Filled.MoreVert, contentDescription = "옵션")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.background
+                    )
                 )
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = onAddTask,
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-            ) {
-                Icon(Icons.Filled.Add, contentDescription = "새 할 일")
-            }
-        },
-        containerColor = MaterialTheme.colorScheme.background
-    ) { padding ->
-        if (state.tasks.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize().padding(padding)) {
-                EmptyState(
-                    emoji = state.filter.emoji,
-                    title = "${state.filter.label}에 할 일이 없어요",
-                    message = "+ 버튼을 눌러 새 할 일을 추가하세요."
-                )
-            }
-        } else {
-            val grouped = groupTasks(state.tasks)
-            LazyColumn(
-                contentPadding = PaddingValues(
-                    top = 8.dp + padding.calculateTopPadding(),
-                    bottom = 96.dp + padding.calculateBottomPadding(),
-                    start = 12.dp, end = 12.dp
-                ),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                grouped.forEach { (sectionTitle, tasks) ->
-                    if (sectionTitle.isNotEmpty()) {
-                        item(key = "header_$sectionTitle") {
-                            SectionHeader(sectionTitle, tasks.size)
-                        }
-                    }
-                    item(key = "card_$sectionTitle") {
-                        TaskCard(
-                            tasks = tasks,
-                            onTaskClick = onTaskClick,
-                            onToggle = { vm.toggleCompleted(it) }
-                        )
-                    }
+            },
+            floatingActionButton = {
+                FloatingActionButton(
+                    onClick = onAddTask,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ) {
+                    Icon(Icons.Filled.Add, contentDescription = "새 할 일")
                 }
-            }
-        }
-    }
-}
-
-private fun groupTasks(tasks: List<Task>): List<Pair<String, List<Task>>> {
-    val now = System.currentTimeMillis()
-    val today0 = DateUtils.startOfDay(now)
-    val tomorrow0 = DateUtils.addDays(today0, 1)
-    val nextWeek0 = DateUtils.addDays(today0, 7)
-
-    val overdue = mutableListOf<Task>()
-    val today = mutableListOf<Task>()
-    val tomorrow = mutableListOf<Task>()
-    val thisWeek = mutableListOf<Task>()
-    val later = mutableListOf<Task>()
-    val noDate = mutableListOf<Task>()
-    val completed = mutableListOf<Task>()
-
-    tasks.forEach { t ->
-        if (t.completed) {
-            completed.add(t); return@forEach
-        }
-        val due = t.dueAt
-        if (due == null) {
-            noDate.add(t); return@forEach
-        }
-        val due0 = DateUtils.startOfDay(due)
-        when {
-            due0 < today0 -> overdue.add(t)
-            due0 < tomorrow0 -> today.add(t)
-            due0 < tomorrow0 + 86_400_000L -> tomorrow.add(t)
-            due0 < nextWeek0 -> thisWeek.add(t)
-            else -> later.add(t)
-        }
-    }
-
-    val out = mutableListOf<Pair<String, List<Task>>>()
-    if (overdue.isNotEmpty()) out += "지난 일" to overdue
-    if (today.isNotEmpty()) out += "오늘" to today
-    if (tomorrow.isNotEmpty()) out += "내일" to tomorrow
-    if (thisWeek.isNotEmpty()) out += "이번 주" to thisWeek
-    if (later.isNotEmpty()) out += "나중에" to later
-    if (noDate.isNotEmpty()) out += "날짜 없음" to noDate
-    if (completed.isNotEmpty()) out += "완료됨" to completed
-    return out
-}
-
-@Composable
-private fun SectionHeader(title: String, count: Int) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 4.dp, top = 8.dp, bottom = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            title,
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontWeight = FontWeight.Medium
-        )
-        Spacer(Modifier.width(8.dp))
-        Text(
-            "$count",
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
-@Composable
-private fun TaskCard(
-    tasks: List<Task>,
-    onTaskClick: (Long) -> Unit,
-    onToggle: (Task) -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                MaterialTheme.colorScheme.surface,
-                RoundedCornerShape(16.dp)
-            )
-    ) {
-        Column {
-            tasks.forEachIndexed { index, task ->
-                CompactTaskItem(
-                    task = task,
-                    onToggle = { onToggle(task) },
-                    onClick = { onTaskClick(task.id) }
-                )
-                if (index < tasks.lastIndex) {
-                    HorizontalDivider(
-                        modifier = Modifier.padding(start = 50.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+            },
+            containerColor = MaterialTheme.colorScheme.background
+        ) { padding ->
+            if (state.tasks.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+                    EmptyState(
+                        emoji = state.filter.emoji,
+                        title = "${title}에 할 일이 없어요",
+                        message = "+ 버튼을 눌러 새 할 일을 추가하세요."
                     )
                 }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding)
+                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                        .background(
+                            MaterialTheme.colorScheme.surface,
+                            RoundedCornerShape(16.dp)
+                        )
+                ) {
+                    LazyColumn(
+                        contentPadding = PaddingValues(vertical = 4.dp, horizontal = 0.dp)
+                    ) {
+                        items(state.tasks, key = { it.id }) { task ->
+                            CompactTaskItem(
+                                task = task,
+                                onToggle = { vm.toggleCompleted(task) },
+                                onClick = { onTaskClick(task.id) }
+                            )
+                            HorizontalDivider(
+                                modifier = Modifier.padding(start = 50.dp),
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                            )
+                        }
+                    }
+                }
             }
         }
+    }
+}
+
+@Composable
+private fun ListsDrawer(
+    state: TasksUiState,
+    onPickFilter: (SmartFilter) -> Unit,
+    onPickList: (Long) -> Unit
+) {
+    ModalDrawerSheet(
+        drawerContainerColor = MaterialTheme.colorScheme.background
+    ) {
+        // Profile area
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.25f),
+                        CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) { Text("👤") }
+            Spacer(Modifier.width(12.dp))
+            Text(
+                "사용자",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.weight(1f)
+            )
+            IconButton(onClick = { /* search */ }) {
+                Icon(Icons.Filled.Search, contentDescription = "검색")
+            }
+            IconButton(onClick = { /* notifications */ }) {
+                Icon(Icons.Filled.Notifications, contentDescription = "알림")
+            }
+            IconButton(onClick = { /* drawer settings */ }) {
+                Icon(Icons.Filled.Settings, contentDescription = "설정")
+            }
+        }
+        HorizontalDivider()
+        Spacer(Modifier.height(8.dp))
+
+        // Smart filters
+        SmartFilter.entries.forEach { f ->
+            DrawerRow(
+                emoji = f.emoji,
+                label = f.label,
+                count = countForFilter(f, state),
+                selected = state.filter == f && state.selectedListId == null,
+                onClick = { onPickFilter(f) }
+            )
+        }
+
+        Spacer(Modifier.height(8.dp))
+        HorizontalDivider()
+        Spacer(Modifier.height(8.dp))
+
+        Text(
+            "내 목록",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 16.dp, top = 4.dp, bottom = 4.dp)
+        )
+
+        state.lists.filterNot { it.isInbox }.forEach { list ->
+            DrawerListRow(
+                list = list,
+                count = state.tasks.count { it.listId == list.id },
+                selected = state.selectedListId == list.id,
+                onClick = { onPickList(list.id) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun DrawerRow(
+    emoji: String,
+    label: String,
+    count: Int,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    NavigationDrawerItem(
+        icon = { Text(emoji) },
+        label = { Text(label) },
+        badge = { if (count > 0) Text("$count") },
+        selected = selected,
+        onClick = onClick,
+        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+        colors = NavigationDrawerItemDefaults.colors(
+            selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.18f),
+            unselectedContainerColor = Color.Transparent
+        )
+    )
+}
+
+@Composable
+private fun DrawerListRow(
+    list: TaskList,
+    count: Int,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    NavigationDrawerItem(
+        icon = {
+            Box(
+                modifier = Modifier
+                    .size(12.dp)
+                    .background(Color(list.colorArgb), CircleShape)
+            )
+        },
+        label = { Text(list.name) },
+        badge = { if (count > 0) Text("$count") },
+        selected = selected,
+        onClick = onClick,
+        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+        colors = NavigationDrawerItemDefaults.colors(
+            selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.18f),
+            unselectedContainerColor = Color.Transparent
+        )
+    )
+}
+
+private fun countForFilter(f: SmartFilter, state: TasksUiState): Int {
+    return when (f) {
+        SmartFilter.INBOX -> {
+            val inboxId = state.lists.firstOrNull { it.isInbox }?.id
+            if (inboxId != null) state.tasks.count { it.listId == inboxId && !it.completed } else 0
+        }
+        SmartFilter.TODAY,
+        SmartFilter.TOMORROW,
+        SmartFilter.NEXT_7,
+        SmartFilter.ALL -> state.tasks.count { !it.completed }
+        SmartFilter.COMPLETED -> state.tasks.count { it.completed }
     }
 }
