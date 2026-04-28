@@ -38,6 +38,8 @@ sealed class UpdateState {
 
 class UpdateChecker(private val context: Context) {
 
+    private val json = Json { ignoreUnknownKeys = true }
+
     suspend fun fetchManifest(): VersionManifest? = withContext(Dispatchers.IO) {
         runCatching {
             val cacheBuster = "?_=" + System.currentTimeMillis()
@@ -51,7 +53,7 @@ class UpdateChecker(private val context: Context) {
             conn.setRequestProperty("Cache-Control", "no-cache, no-store, must-revalidate")
             conn.setRequestProperty("Pragma", "no-cache")
             val text = conn.inputStream.bufferedReader().use { it.readText() }
-            Json { ignoreUnknownKeys = true }.decodeFromString(VersionManifest.serializer(), text)
+            json.decodeFromString(VersionManifest.serializer(), text)
         }.getOrNull()
     }
 

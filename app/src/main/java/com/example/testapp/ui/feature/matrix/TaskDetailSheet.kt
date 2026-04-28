@@ -57,9 +57,10 @@ import androidx.compose.ui.window.DialogProperties
 import com.example.testapp.domain.model.Priority
 import com.example.testapp.domain.model.Task
 import com.example.testapp.domain.model.TaskList
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, FlowPreview::class)
 @Composable
 fun TaskDetailSheet(
     task: Task,

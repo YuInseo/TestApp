@@ -23,11 +23,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.EventNote
 import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.EventNote
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.FilterAlt
@@ -127,7 +127,7 @@ fun ListsScreen(
                 )
                 if (calendarsExpanded) {
                     SubRow(
-                        icon = Icons.Filled.EventNote,
+                        icon = Icons.AutoMirrored.Filled.EventNote,
                         label = "inseo0121@gmail.com",
                         count = 9
                     )

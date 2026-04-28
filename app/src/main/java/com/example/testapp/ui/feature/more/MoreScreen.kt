@@ -19,14 +19,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
+import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.FormatListBulleted
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.EventRepeat
-import androidx.compose.material.icons.filled.Help
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Notifications
@@ -119,7 +119,7 @@ fun MoreScreen(
             Spacer(Modifier.height(12.dp))
 
             CardSection {
-                MoreItem(Icons.Filled.FormatListBulleted, "목록 관리", onLists)
+                MoreItem(Icons.AutoMirrored.Filled.FormatListBulleted, "목록 관리", onLists)
                 Divider()
                 MoreItem(Icons.Filled.EventRepeat, "습관", onHabits)
                 Divider()
@@ -141,7 +141,7 @@ fun MoreScreen(
             CardSection {
                 MoreItem(Icons.Filled.Star, "친구에게 추천하기", onClick = {})
                 Divider()
-                MoreItem(Icons.Filled.Help, "도움말 & 피드백", onClick = {})
+                MoreItem(Icons.AutoMirrored.Filled.Help, "도움말 & 피드백", onClick = {})
                 Divider()
                 MoreItem(
                     icon = Icons.Filled.Info,
