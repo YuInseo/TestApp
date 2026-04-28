@@ -1,6 +1,8 @@
 package com.example.testapp.di
 
 import com.example.testapp.data.db.AppDatabase
+import com.example.testapp.data.backup.BackupManager
+import com.example.testapp.data.backup.BackupViewModel
 import com.example.testapp.data.preferences.SettingsRepository
 import com.example.testapp.data.repository.HabitRepository
 import com.example.testapp.data.repository.PomodoroRepository
@@ -10,9 +12,11 @@ import com.example.testapp.data.repository.TaskRepository
 import com.example.testapp.notification.ReminderScheduler
 import com.example.testapp.ui.feature.calendar.CalendarViewModel
 import com.example.testapp.ui.feature.focus.FocusViewModel
+import com.example.testapp.ui.feature.habits.HabitsViewModel
 import com.example.testapp.ui.feature.lists.ListsViewModel
 import com.example.testapp.ui.feature.matrix.MatrixViewModel
 import com.example.testapp.ui.feature.settings.SettingsViewModel
+import com.example.testapp.ui.feature.stats.StatsViewModel
 import com.example.testapp.ui.feature.taskedit.TaskEditViewModel
 import com.example.testapp.ui.feature.tasks.TasksViewModel
 import com.example.testapp.ui.update.UpdateViewModel
@@ -37,6 +41,7 @@ val appModule = module {
     single { SettingsRepository(androidContext()) }
     single { ReminderScheduler(androidContext()) }
     single { UpdateChecker(androidContext()) }
+    single { BackupManager(androidContext(), get(), get(), get(), get()) }
 
     viewModel { TasksViewModel(get(), get(), get()) }
     viewModel { (taskId: Long) -> TaskEditViewModel(get(), get(), get(), get(), taskId) }
@@ -46,4 +51,7 @@ val appModule = module {
     viewModel { FocusViewModel(get(), get()) }
     viewModel { SettingsViewModel(get(), get()) }
     viewModel { UpdateViewModel(get(), get()) }
+    viewModel { HabitsViewModel(get()) }
+    viewModel { StatsViewModel(get(), get()) }
+    viewModel { BackupViewModel(get()) }
 }

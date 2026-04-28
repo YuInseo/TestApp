@@ -24,6 +24,8 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.FormatListBulleted
 import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.EventRepeat
 import androidx.compose.material.icons.filled.Help
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MusicNote
@@ -49,6 +51,8 @@ import com.example.testapp.BuildConfig
 fun MoreScreen(
     onLists: () -> Unit,
     onSettings: () -> Unit,
+    onHabits: () -> Unit,
+    onStats: () -> Unit,
     onCheckForUpdate: () -> Unit
 ) {
     Scaffold(
@@ -97,6 +101,10 @@ fun MoreScreen(
 
             CardSection {
                 MoreItem(Icons.Filled.FormatListBulleted, "목록 관리", onLists)
+                Divider()
+                MoreItem(Icons.Filled.EventRepeat, "습관", onHabits)
+                Divider()
+                MoreItem(Icons.Filled.BarChart, "통계", onStats)
                 Divider()
                 MoreItem(Icons.Filled.Notifications, "알림 권한", onSettings)
             }

@@ -21,10 +21,12 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.testapp.ui.feature.calendar.CalendarScreen
 import com.example.testapp.ui.feature.focus.FocusScreen
+import com.example.testapp.ui.feature.habits.HabitsScreen
 import com.example.testapp.ui.feature.lists.ListsScreen
 import com.example.testapp.ui.feature.matrix.MatrixScreen
 import com.example.testapp.ui.feature.more.MoreScreen
 import com.example.testapp.ui.feature.settings.SettingsScreen
+import com.example.testapp.ui.feature.stats.StatsScreen
 import com.example.testapp.ui.feature.taskedit.TaskEditScreen
 import com.example.testapp.ui.feature.tasks.TasksScreen
 import com.example.testapp.ui.navigation.Routes
@@ -109,8 +111,16 @@ fun AppShell(onCheckForUpdate: () -> Unit) {
                 MoreScreen(
                     onLists = { navController.navigate(Routes.LISTS) },
                     onSettings = { navController.navigate(Routes.SETTINGS) },
+                    onHabits = { navController.navigate(Routes.HABITS) },
+                    onStats = { navController.navigate(Routes.STATS) },
                     onCheckForUpdate = onCheckForUpdate
                 )
+            }
+            composable(Routes.HABITS) {
+                HabitsScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Routes.STATS) {
+                StatsScreen(onBack = { navController.popBackStack() })
             }
             composable(
                 route = Routes.TASK_EDIT,
