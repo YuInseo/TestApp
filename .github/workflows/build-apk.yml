@@ -5,6 +5,8 @@ on:
     branches:
       - claude/android-dev-setup-AVtqY
       - main
+    paths-ignore:
+      - 'build-logs/**'
   workflow_dispatch:
 
 permissions:
@@ -34,32 +36,78 @@ jobs:
 
       - name: Build debug APK
         id: build
-        run: gradle assembleDebug --no-daemon --stacktrace 2>&1 | tee build.log
-
-      - name: Capture build log on failure
-        if: failure()
+        continue-on-error: true
         run: |
-          tail -c 100000 build.log > build-tail.log || true
-          ls -la build*.log || true
+          set -o pipefail
+          gradle assembleDebug --no-daemon --stacktrace --info 2>&1 | tee build.log
+          echo "exit=$?" > build.exit
 
-      - name: Upload build log on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-log
-          path: build*.log
-
-      - name: Show build log inline (debug)
-        if: failure()
+      - name: Show build log inline
+        if: always()
         run: |
-          echo "::group::build.log tail"
-          tail -c 50000 build.log || echo "no build.log"
+          echo "::group::build.log tail (last 200 lines)"
+          tail -n 200 build.log || echo "no build.log"
           echo "::endgroup::"
-          ls -la build*.log || true
+          ls -la build*.log build.exit 2>/dev/null || true
+          echo "WORKSPACE=$GITHUB_WORKSPACE"
           pwd
 
+      - name: Upload full build log artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log-${{ github.sha }}
+          path: |
+            build.log
+            build.exit
+          if-no-files-found: warn
+
+      - name: Commit build log to build-logs branch
+        if: always()
+        run: |
+          set -e
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          SHA=$(git rev-parse HEAD)
+          SHORT=$(git rev-parse --short HEAD)
+          STATUS="${{ steps.build.outcome }}"
+
+          # Stash the build log and exit status before switching branches
+          mkdir -p /tmp/log-stash
+          cp build.log /tmp/log-stash/build.log 2>/dev/null || echo "no build.log" > /tmp/log-stash/build.log
+          cp build.exit /tmp/log-stash/build.exit 2>/dev/null || echo "exit=?" > /tmp/log-stash/build.exit
+
+          git stash -u 2>/dev/null || true
+
+          # Fetch / create orphan build-logs branch
+          if git ls-remote --exit-code --heads origin build-logs >/dev/null 2>&1; then
+            git fetch origin build-logs:build-logs
+            git checkout build-logs
+          else
+            git checkout --orphan build-logs
+            git rm -rf . 2>/dev/null || true
+            echo "# Build logs branch" > README.md
+            git add README.md
+            git commit -m "Init build-logs branch [skip ci]" || true
+          fi
+
+          mkdir -p runs
+          cp /tmp/log-stash/build.log "runs/${SHORT}.log"
+          cp /tmp/log-stash/build.exit "runs/${SHORT}.exit"
+          echo "${STATUS}" > "runs/${SHORT}.status"
+          # Maintain a "latest" pointer
+          cp /tmp/log-stash/build.log runs/latest.log
+          cp /tmp/log-stash/build.exit runs/latest.exit
+          echo "${STATUS}" > runs/latest.status
+          echo "${SHA}" > runs/latest.sha
+
+          git add runs/
+          git commit -m "Build log ${SHORT} (${STATUS}) [skip ci]" || echo "nothing to commit"
+          git push origin build-logs
+
       - name: Open issue with build log on failure
-        if: failure()
+        if: steps.build.outcome == 'failure'
         uses: actions/github-script@v7
         with:
           script: |
@@ -78,16 +126,16 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 title: `Build failure for ${sha}`,
-                body: `Build failure for commit ${context.sha}\n\nLast ~50KB of build log:\n\n${body}`
+                body: `Build failure for commit ${context.sha}\n\nLog also at: build-logs branch \`runs/${sha}.log\` and \`runs/latest.log\`.\n\nLast ~50KB:\n\n${body}`
               });
               core.notice(`Created issue #${result.data.number}`);
             } catch (err) {
               core.error('Issue creation failed: ' + (err.message || String(err)));
               core.error(JSON.stringify(err.response?.data || {}));
-              throw err;
             }
 
       - name: Compute version metadata
+        if: steps.build.outcome == 'success'
         id: meta
         run: |
           CODE=$(git rev-list --count HEAD)
@@ -98,6 +146,7 @@ jobs:
           echo "sha=$SHA" >> $GITHUB_OUTPUT
 
       - name: Stage release assets
+        if: steps.build.outcome == 'success'
         run: |
           cp app/build/outputs/apk/debug/app-debug.apk TestApp.apk
           cat > version.json <<EOF
@@ -112,6 +161,7 @@ jobs:
           cat version.json
 
       - name: Publish to GitHub Release (latest-debug)
+        if: steps.build.outcome == 'success'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest-debug
@@ -129,9 +179,8 @@ jobs:
           prerelease: true
           make_latest: "false"
 
-      - name: Upload APK artifact (backup)
-        uses: actions/upload-artifact@v4
-        with:
-          name: TestApp-debug-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error
+      - name: Fail the job if build failed
+        if: steps.build.outcome == 'failure'
+        run: |
+          echo "::error::Gradle build failed - see build-logs branch and issues"
+          exit 1
