@@ -8,6 +8,7 @@ import com.example.testapp.data.repository.TaskRepository
 import com.example.testapp.domain.model.Priority
 import com.example.testapp.domain.model.Tag
 import com.example.testapp.domain.model.Task
+import com.example.testapp.domain.model.TaskList
 import com.example.testapp.util.DateUtils
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -20,7 +21,8 @@ data class MatrixState(
     val q2: List<Task> = emptyList(),
     val q3: List<Task> = emptyList(),
     val q4: List<Task> = emptyList(),
-    val allTags: List<Tag> = emptyList()
+    val allTags: List<Tag> = emptyList(),
+    val lists: List<TaskList> = emptyList()
 )
 
 enum class Quadrant(val title: String, val subtitle: String, val colorArgb: Long) {
@@ -37,8 +39,9 @@ class MatrixViewModel(
 ) : ViewModel() {
     val state: StateFlow<MatrixState> = combine(
         repo.observeIncomplete(),
-        tagRepo.observeAll()
-    ) { tasks, tags ->
+        tagRepo.observeAll(),
+        listRepo.observeAll()
+    ) { tasks, tags, lists ->
         val now = System.currentTimeMillis()
         val today0 = DateUtils.startOfDay(now)
         val tomorrow0 = DateUtils.addDays(today0, 1)
@@ -56,13 +59,21 @@ class MatrixViewModel(
                 else -> q4.add(t)
             }
         }
-        MatrixState(q1, q2, q3, q4, tags)
+        MatrixState(q1, q2, q3, q4, tags, lists)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), MatrixState())
 
     fun toggle(task: Task) = viewModelScope.launch { repo.setCompleted(task.id, !task.completed) }
 
-    fun quickAdd(rawText: String, quadrant: Quadrant) {
-        val trimmed = rawText.trim()
+    fun quickAdd(
+        rawTitle: String,
+        notes: String,
+        quadrant: Quadrant,
+        priorityOverride: Priority?,
+        dueAtOverride: Long?,
+        listIdOverride: Long?,
+        extraTagIds: Set<Long>
+    ) {
+        val trimmed = rawTitle.trim()
         if (trimmed.isEmpty()) return
         viewModelScope.launch {
             val tagNames = TAG_REGEX.findAll(trimmed).map { it.groupValues[1] }
@@ -71,16 +82,20 @@ class MatrixViewModel(
             val title = TAG_REGEX.replace(trimmed, "").trim().replace(Regex("\\s+"), " ")
             if (title.isEmpty()) return@launch
 
-            val listId = listRepo.getInbox()?.id ?: return@launch
-            val (priority, dueAt) = quadrantDefaults(quadrant)
+            val listId = listIdOverride ?: listRepo.getInbox()?.id ?: return@launch
+            val (defaultPriority, defaultDueAt) = quadrantDefaults(quadrant)
+            val priority = priorityOverride ?: defaultPriority
+            val dueAt = dueAtOverride ?: defaultDueAt
 
             val existing = state.value.allTags.associateBy { it.name.lowercase() }
-            val tagIds = tagNames.map { name ->
+            val parsedIds = tagNames.map { name ->
                 existing[name.lowercase()]?.id ?: tagRepo.upsert(Tag(name = name))
             }
+            val tagIds = (parsedIds + extraTagIds).distinct()
 
             val task = Task(
                 title = title,
+                notes = notes.trim(),
                 listId = listId,
                 priority = priority,
                 dueAt = dueAt

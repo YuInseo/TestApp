@@ -145,8 +145,21 @@ fun MatrixScreen(
 
     if (showQuickAdd) {
         MatrixQuickAddSheet(
+            allTags = state.allTags,
+            allLists = state.lists,
             onDismiss = { showQuickAdd = false },
-            onSubmit = { text, quadrant -> vm.quickAdd(text, quadrant) }
+            onExpand = onAddTask,
+            onSubmit = { p ->
+                vm.quickAdd(
+                    rawTitle = p.title,
+                    notes = p.notes,
+                    quadrant = p.quadrant,
+                    priorityOverride = p.priorityOverride,
+                    dueAtOverride = p.dueAtOverride,
+                    listIdOverride = p.listIdOverride,
+                    extraTagIds = p.extraTagIds
+                )
+            }
         )
     }
 }
