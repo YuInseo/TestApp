@@ -46,11 +46,16 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.testapp.BuildConfig
+import com.example.testapp.ui.navigation.Tab
 
 @Composable
 fun MoreScreen(
+    overflowTabs: List<Tab> = emptyList(),
+    onTabClick: (Tab) -> Unit = {},
     onLists: () -> Unit,
     onSettings: () -> Unit,
+    onAppearance: () -> Unit,
+    onTabBarConfig: () -> Unit,
     onHabits: () -> Unit,
     onStats: () -> Unit,
     onCheckForUpdate: () -> Unit
@@ -77,17 +82,31 @@ fun MoreScreen(
             ProfileCard()
             Spacer(Modifier.height(12.dp))
 
+            if (overflowTabs.isNotEmpty()) {
+                CardSection {
+                    overflowTabs.forEachIndexed { i, tab ->
+                        if (i > 0) Divider()
+                        MoreItem(
+                            icon = tab.iconSelected,
+                            label = tab.label,
+                            onClick = { onTabClick(tab) }
+                        )
+                    }
+                }
+                Spacer(Modifier.height(12.dp))
+            }
+
             CardSection {
                 MoreItem(
                     icon = Icons.Filled.GridView,
                     label = "탭 바",
-                    onClick = { /* tab bar customization */ }
+                    onClick = onTabBarConfig
                 )
             }
             Spacer(Modifier.height(12.dp))
 
             CardSection {
-                MoreItem(Icons.Filled.Palette, "외관", onSettings)
+                MoreItem(Icons.Filled.Palette, "외관", onAppearance)
                 Divider()
                 MoreItem(Icons.Filled.AccessTime, "날짜 & 시간", onSettings)
                 Divider()

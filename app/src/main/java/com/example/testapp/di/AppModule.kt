@@ -13,7 +13,9 @@ import com.example.testapp.notification.ReminderScheduler
 import com.example.testapp.ui.feature.calendar.CalendarViewModel
 import com.example.testapp.ui.feature.focus.FocusViewModel
 import com.example.testapp.ui.feature.habits.HabitsViewModel
+import com.example.testapp.ui.feature.appearance.AppearanceViewModel
 import com.example.testapp.ui.feature.lists.ListsViewModel
+import com.example.testapp.ui.feature.tabbarconfig.TabBarConfigViewModel
 import com.example.testapp.ui.feature.matrix.MatrixViewModel
 import com.example.testapp.ui.feature.settings.SettingsViewModel
 import com.example.testapp.ui.feature.stats.StatsViewModel
@@ -45,11 +47,13 @@ val appModule = module {
 
     viewModel { TasksViewModel(get(), get(), get()) }
     viewModel { (taskId: Long) -> TaskEditViewModel(get(), get(), get(), get(), taskId) }
-    viewModel { ListsViewModel(get()) }
+    viewModel { ListsViewModel(get(), get(), get()) }
     viewModel { CalendarViewModel(get()) }
-    viewModel { MatrixViewModel(get()) }
+    viewModel { MatrixViewModel(get(), get(), get()) }
     viewModel { FocusViewModel(get(), get()) }
     viewModel { SettingsViewModel(get(), get()) }
+    viewModel { AppearanceViewModel(get()) }
+    viewModel { TabBarConfigViewModel(get()) }
     viewModel { UpdateViewModel(get(), get()) }
     viewModel { HabitsViewModel(get()) }
     viewModel { StatsViewModel(get(), get()) }

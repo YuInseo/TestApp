@@ -3,6 +3,7 @@ package com.example.testapp.ui.theme
 import android.app.Activity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
@@ -10,7 +11,13 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.TextUnitType
+import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
+import com.example.testapp.data.preferences.AccentPreset
+import com.example.testapp.data.preferences.FontScale
 
 object AppColors {
     val Accent = Color(0xFF3B82F6)
@@ -72,9 +79,17 @@ private val LightColorScheme = lightColorScheme(
 fun AppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = false,
+    accentPreset: AccentPreset = AccentPreset.DEFAULT,
+    fontScale: FontScale = FontScale.NORMAL,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    val accent = Color(accentPreset.argb)
+    val baseScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    val colorScheme = baseScheme.copy(
+        primary = accent,
+        primaryContainer = accent.copy(alpha = 0.25f),
+        onPrimaryContainer = if (darkTheme) Color.White else Color.Black
+    )
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
@@ -86,5 +101,38 @@ fun AppTheme(
             controller.isAppearanceLightNavigationBars = !darkTheme
         }
     }
-    MaterialTheme(colorScheme = colorScheme, content = content)
+    MaterialTheme(
+        colorScheme = colorScheme,
+        typography = scaledTypography(fontScale.factor),
+        content = content
+    )
 }
+
+private fun scaledTypography(scale: Float): Typography {
+    if (scale == 1.0f) return Typography()
+    val base = Typography()
+    fun TextStyle.scaled(): TextStyle = copy(
+        fontSize = fontSize.scale(scale),
+        lineHeight = lineHeight.scale(scale)
+    )
+    return Typography(
+        displayLarge = base.displayLarge.scaled(),
+        displayMedium = base.displayMedium.scaled(),
+        displaySmall = base.displaySmall.scaled(),
+        headlineLarge = base.headlineLarge.scaled(),
+        headlineMedium = base.headlineMedium.scaled(),
+        headlineSmall = base.headlineSmall.scaled(),
+        titleLarge = base.titleLarge.scaled(),
+        titleMedium = base.titleMedium.scaled(),
+        titleSmall = base.titleSmall.scaled(),
+        bodyLarge = base.bodyLarge.scaled(),
+        bodyMedium = base.bodyMedium.scaled(),
+        bodySmall = base.bodySmall.scaled(),
+        labelLarge = base.labelLarge.scaled(),
+        labelMedium = base.labelMedium.scaled(),
+        labelSmall = base.labelSmall.scaled()
+    )
+}
+
+private fun TextUnit.scale(factor: Float): TextUnit =
+    if (type == TextUnitType.Sp) (value * factor).sp else this

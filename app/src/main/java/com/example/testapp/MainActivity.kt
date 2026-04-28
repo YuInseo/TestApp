@@ -53,7 +53,12 @@ private fun AppRoot() {
 
     LaunchedEffect(Unit) { updateVm.checkOnLaunch() }
 
-    AppTheme(darkTheme = dark, dynamicColor = false) {
+    AppTheme(
+        darkTheme = dark,
+        dynamicColor = false,
+        accentPreset = s.accentPreset,
+        fontScale = s.fontScale
+    ) {
         AppShell(onCheckForUpdate = updateVm::checkManually)
         UpdateDialog(updateVm)
     }
