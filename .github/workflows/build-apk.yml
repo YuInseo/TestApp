@@ -30,10 +30,9 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Set up Gradle
+      - name: Set up Gradle (wrapper + cache)
         uses: gradle/actions/setup-gradle@v3
         with:
-          gradle-version: "8.7"
           cache-read-only: false
           gradle-home-cache-cleanup: true
 
@@ -43,6 +42,7 @@ jobs:
           path: |
             ~/.android/build-cache
             ~/.android/cache
+            ~/.gradle/caches/transforms-4
             app/build/intermediates/incremental
           key: android-build-cache-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', '**/libs.versions.toml') }}
           restore-keys: |
@@ -68,11 +68,11 @@ jobs:
           APP_GIT_SHA: ${{ steps.meta.outputs.sha }}
         run: |
           set -o pipefail
-          gradle assembleDebug -x lint -x test \
+          ./gradlew assembleDebug -x lint -x test \
             -PappVersionCode=${{ steps.meta.outputs.code }} \
             -PappVersionName=${{ steps.meta.outputs.name }} \
             -PappGitSha=${{ steps.meta.outputs.sha }} \
-            --build-cache --parallel --no-daemon --stacktrace 2>&1 | tee build.log
+            --build-cache --parallel --stacktrace 2>&1 | tee build.log
           echo "exit=$?" > build.exit
 
       - name: Show build log inline
