@@ -23,21 +23,25 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.EventNote
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.FilterAlt
 import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.outlined.Hexagon
+import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Inbox
 import androidx.compose.material.icons.filled.LocalOffer
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material.icons.filled.RssFeed
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Today
 import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.outlined.Settings as SettingsOutlined
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -101,7 +105,7 @@ fun ListsScreen(
                 Spacer(Modifier.height(4.dp))
 
                 NavRow(
-                    icon = Icons.Filled.CalendarMonth,
+                    icon = Icons.Filled.Today,
                     iconTint = MaterialTheme.colorScheme.primary,
                     label = "오늘",
                     count = state.todayCount,
@@ -123,7 +127,11 @@ fun ListsScreen(
                     onToggle = { calendarsExpanded = !calendarsExpanded }
                 )
                 if (calendarsExpanded) {
-                    SubRow(label = "inseo0121@gmail.com", count = 9)
+                    SubRow(
+                        icon = Icons.Filled.EventNote,
+                        label = "inseo0121@gmail.com",
+                        count = 9
+                    )
                 }
                 ExpandableRow(
                     icon = Icons.Filled.LocalOffer,
@@ -134,6 +142,8 @@ fun ListsScreen(
                 if (tagsExpanded) {
                     state.tags.forEach { tag ->
                         SubRow(
+                            icon = Icons.Filled.LocalOffer,
+                            iconTint = Color(tag.colorArgb),
                             label = "#${tag.name}",
                             count = state.countByTag[tag.id] ?: 0
                         )
@@ -147,7 +157,7 @@ fun ListsScreen(
 
                 state.lists.filter { !it.isInbox }.forEach { list ->
                     NavRow(
-                        icon = Icons.Filled.Menu,
+                        icon = Icons.AutoMirrored.Filled.FormatListBulleted,
                         iconTint = Color(list.colorArgb),
                         label = list.name,
                         count = state.countByList[list.id] ?: 0,
@@ -245,7 +255,7 @@ private fun SidebarHeader(onBack: () -> Unit) {
             Icon(Icons.Filled.NotificationsNone, contentDescription = "알림")
         }
         IconButton(onClick = { /* settings */ }) {
-            Icon(Icons.Outlined.Hexagon, contentDescription = "설정")
+            Icon(SettingsOutlined, contentDescription = "설정")
         }
     }
 }
@@ -383,28 +393,24 @@ private fun ExpandableRow(
 }
 
 @Composable
-private fun SubRow(label: String, count: Int) {
+private fun SubRow(
+    icon: ImageVector,
+    label: String,
+    count: Int,
+    iconTint: Color = MaterialTheme.colorScheme.primary
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 48.dp, end = 20.dp, top = 6.dp, bottom = 6.dp),
+            .padding(start = 52.dp, end = 20.dp, top = 8.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            modifier = Modifier
-                .size(20.dp)
-                .background(
-                    MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                    RoundedCornerShape(4.dp)
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                label.firstOrNull()?.toString() ?: "",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary
-            )
-        }
+        Icon(
+            icon,
+            contentDescription = null,
+            tint = iconTint,
+            modifier = Modifier.size(18.dp)
+        )
         Spacer(Modifier.width(12.dp))
         Text(label, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
         if (count > 0) {
@@ -467,12 +473,12 @@ private fun BottomBar(
             }
             DropdownMenu(expanded = addMenuOpen, onDismissRequest = onAddMenuDismiss) {
                 DropdownMenuItem(
-                    leadingIcon = { Icon(Icons.Filled.Menu, contentDescription = null) },
+                    leadingIcon = { Icon(Icons.AutoMirrored.Filled.FormatListBulleted, contentDescription = null) },
                     text = { Text("목록") },
                     onClick = onAddList
                 )
                 DropdownMenuItem(
-                    leadingIcon = { Icon(Icons.Filled.FilterList, contentDescription = null) },
+                    leadingIcon = { Icon(Icons.Filled.FilterAlt, contentDescription = null) },
                     text = { Text("필터") },
                     onClick = onAddFilter
                 )
