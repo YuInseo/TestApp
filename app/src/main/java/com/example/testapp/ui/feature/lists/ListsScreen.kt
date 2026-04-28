@@ -41,7 +41,6 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Today
 import androidx.compose.material.icons.filled.Tune
-import androidx.compose.material.icons.outlined.Settings as SettingsOutlined
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -255,7 +254,7 @@ private fun SidebarHeader(onBack: () -> Unit) {
             Icon(Icons.Filled.NotificationsNone, contentDescription = "알림")
         }
         IconButton(onClick = { /* settings */ }) {
-            Icon(SettingsOutlined, contentDescription = "설정")
+            Icon(Icons.Filled.Settings, contentDescription = "설정")
         }
     }
 }
