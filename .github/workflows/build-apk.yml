@@ -49,28 +49,43 @@ jobs:
           name: build-log
           path: build*.log
 
+      - name: Show build log inline (debug)
+        if: failure()
+        run: |
+          echo "::group::build.log tail"
+          tail -c 50000 build.log || echo "no build.log"
+          echo "::endgroup::"
+          ls -la build*.log || true
+          pwd
+
       - name: Open issue with build log on failure
         if: failure()
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
-            let body = '';
+            let body = 'No log captured.';
             try {
               const log = fs.readFileSync('build.log', 'utf8');
-              const tail = log.length > 60000 ? log.slice(-60000) : log;
+              const tail = log.length > 50000 ? log.slice(-50000) : log;
               body = '```\n' + tail + '\n```';
             } catch (e) {
               body = 'Failed to read build.log: ' + String(e);
             }
             const sha = context.sha.substring(0, 7);
-            await github.rest.issues.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: `Build failure for ${sha}`,
-              body: `Build failure for commit ${context.sha}\n\nLast ~60KB of build log:\n\n${body}`,
-              labels: ['build-failure']
-            });
+            try {
+              const result = await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `Build failure for ${sha}`,
+                body: `Build failure for commit ${context.sha}\n\nLast ~50KB of build log:\n\n${body}`
+              });
+              core.notice(`Created issue #${result.data.number}`);
+            } catch (err) {
+              core.error('Issue creation failed: ' + (err.message || String(err)));
+              core.error(JSON.stringify(err.response?.data || {}));
+              throw err;
+            }
 
       - name: Compute version metadata
         id: meta
