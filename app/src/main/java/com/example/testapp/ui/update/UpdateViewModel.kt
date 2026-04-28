@@ -62,6 +62,7 @@ class UpdateViewModel(
     fun install() {
         val s = _state.value
         if (s is UpdateState.ReadyToInstall) {
+            _state.value = UpdateState.Installing
             viewModelScope.launch {
                 withContext(Dispatchers.IO) { checker.installApk(s.apk) }
             }

@@ -64,13 +64,29 @@ fun UpdateDialog(vm: UpdateViewModel = koinViewModel()) {
         is UpdateState.ReadyToInstall -> AlertDialog(
             onDismissRequest = vm::dismiss,
             title = { Text("설치 준비 완료") },
-            text = { Text("시스템 설치 화면으로 이동합니다.") },
+            text = {
+                Text(
+                    "확인을 누르면 설치가 진행되고 새 버전으로 자동 재시작됩니다.\n" +
+                        "(시스템에서 한 번만 설치 확인을 눌러주세요)"
+                )
+            },
             confirmButton = {
-                TextButton(onClick = { vm.install(); vm.dismiss() }) { Text("설치") }
+                TextButton(onClick = { vm.install() }) { Text("설치 후 재시작") }
             },
             dismissButton = {
                 TextButton(onClick = vm::dismiss) { Text("취소") }
             }
+        )
+        is UpdateState.Installing -> AlertDialog(
+            onDismissRequest = {},
+            title = { Text("설치 중...") },
+            text = {
+                Text(
+                    "시스템 설치 화면에서 [설치]를 눌러주세요.\n" +
+                        "설치가 끝나면 새 버전이 자동으로 시작됩니다."
+                )
+            },
+            confirmButton = {}
         )
         is UpdateState.Error -> AlertDialog(
             onDismissRequest = vm::dismiss,

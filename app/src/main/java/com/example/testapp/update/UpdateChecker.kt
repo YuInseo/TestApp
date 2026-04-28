@@ -32,6 +32,7 @@ sealed class UpdateState {
     data class Available(val manifest: VersionManifest) : UpdateState()
     data class Downloading(val progress: Int) : UpdateState()
     data class ReadyToInstall(val apk: File) : UpdateState()
+    data object Installing : UpdateState()
     data class Error(val message: String) : UpdateState()
 }
 
