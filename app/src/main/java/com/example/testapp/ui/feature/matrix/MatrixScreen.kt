@@ -72,8 +72,6 @@ private data class DragState(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MatrixScreen(
-    onTaskClick: (Long) -> Unit,
-    onAddTask: () -> Unit,
     vm: MatrixViewModel = koinViewModel()
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
@@ -257,7 +255,11 @@ fun MatrixScreen(
             allTags = state.allTags,
             allLists = state.lists,
             onDismiss = { showQuickAdd = false },
-            onExpand = onAddTask,
+            onExpand = {
+                val seedListId = state.lists.firstOrNull { it.isInbox }?.id
+                    ?: state.lists.firstOrNull()?.id ?: 0L
+                detailTask = Task(title = "", listId = seedListId)
+            },
             onSubmit = { p ->
                 vm.quickAdd(
                     rawTitle = p.title,
@@ -274,14 +276,12 @@ fun MatrixScreen(
 
     detailTask?.let { task ->
         val live = listOf(state.q1, state.q2, state.q3, state.q4)
-            .flatten().firstOrNull { it.id == task.id } ?: task
+            .flatten().firstOrNull { it.id == task.id && task.id != 0L } ?: task
         TaskDetailSheet(
-            task = live,
+            initial = live,
             allLists = state.lists,
             onDismiss = { detailTask = null },
-            onUpdate = { title, notes, listId, priority ->
-                vm.update(live, title, notes, listId, priority)
-            }
+            onSave = { updated, subs -> vm.save(updated, subs) }
         )
     }
 }

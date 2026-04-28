@@ -29,15 +29,12 @@ object Routes {
     const val SETTINGS_TAB = "tab/settings"
     const val MORE = "tab/more"
 
-    const val TASK_EDIT = "task_edit/{taskId}"
     const val LISTS = "lists"
     const val SETTINGS = "settings"
     const val APPEARANCE = "appearance"
     const val TAB_BAR_CONFIG = "tab_bar_config"
     const val HABITS = "habits"
     const val STATS = "stats"
-
-    fun taskEdit(id: Long) = "task_edit/$id"
 }
 
 enum class Tab(

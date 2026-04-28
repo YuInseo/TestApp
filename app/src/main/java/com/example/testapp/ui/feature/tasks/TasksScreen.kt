@@ -63,8 +63,6 @@ import org.koin.androidx.compose.koinViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TasksScreen(
-    onTaskClick: (Long) -> Unit,
-    onAddTask: () -> Unit,
     vm: TasksViewModel = koinViewModel()
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
@@ -118,7 +116,13 @@ fun TasksScreen(
             },
             floatingActionButton = {
                 FloatingActionButton(
-                    onClick = onAddTask,
+                    onClick = {
+                        val seedListId = state.selectedListId
+                            ?: state.lists.firstOrNull { it.isInbox }?.id
+                            ?: state.lists.firstOrNull()?.id
+                            ?: 0L
+                        detailTask = Task(title = "", listId = seedListId)
+                    },
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
                 ) {
@@ -167,14 +171,12 @@ fun TasksScreen(
     }
 
     detailTask?.let { task ->
-        val live = state.tasks.firstOrNull { it.id == task.id } ?: task
+        val live = state.tasks.firstOrNull { it.id == task.id && task.id != 0L } ?: task
         TaskDetailSheet(
-            task = live,
+            initial = live,
             allLists = state.lists,
             onDismiss = { detailTask = null },
-            onUpdate = { title, notes, listId, priority ->
-                vm.update(live, title = title, notes = notes, listId = listId, priority = priority)
-            }
+            onSave = { updated, subs -> vm.save(updated, subs) }
         )
     }
 }

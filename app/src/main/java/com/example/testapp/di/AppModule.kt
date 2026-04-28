@@ -19,7 +19,6 @@ import com.example.testapp.ui.feature.tabbarconfig.TabBarConfigViewModel
 import com.example.testapp.ui.feature.matrix.MatrixViewModel
 import com.example.testapp.ui.feature.settings.SettingsViewModel
 import com.example.testapp.ui.feature.stats.StatsViewModel
-import com.example.testapp.ui.feature.taskedit.TaskEditViewModel
 import com.example.testapp.ui.feature.tasks.TasksViewModel
 import com.example.testapp.ui.update.UpdateViewModel
 import com.example.testapp.update.UpdateChecker
@@ -46,7 +45,6 @@ val appModule = module {
     single { BackupManager(androidContext(), get(), get(), get(), get()) }
 
     viewModel { TasksViewModel(get(), get(), get()) }
-    viewModel { (taskId: Long) -> TaskEditViewModel(get(), get(), get(), get(), taskId) }
     viewModel { ListsViewModel(get(), get(), get()) }
     viewModel { CalendarViewModel(get(), get()) }
     viewModel { MatrixViewModel(get(), get(), get()) }

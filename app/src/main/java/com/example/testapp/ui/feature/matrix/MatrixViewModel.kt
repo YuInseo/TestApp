@@ -93,21 +93,10 @@ class MatrixViewModel(
         }
     }
 
-    fun update(
-        task: Task,
-        title: String? = null,
-        notes: String? = null,
-        listId: Long? = null,
-        priority: Priority? = null
-    ) {
+    fun save(task: Task, subtasks: List<com.example.testapp.domain.model.Subtask>) {
+        if (task.title.isBlank()) return
         viewModelScope.launch {
-            val updated = task.copy(
-                title = title ?: task.title,
-                notes = notes ?: task.notes,
-                listId = listId ?: task.listId,
-                priority = priority ?: task.priority
-            )
-            repo.upsert(updated, task.tags.map { it.id }, task.subtasks)
+            repo.upsert(task, task.tags.map { it.id }, subtasks)
         }
     }
 

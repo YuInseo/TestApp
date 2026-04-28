@@ -83,21 +83,10 @@ class CalendarViewModel(
         viewModelScope.launch { taskRepo.setCompleted(task.id, !task.completed) }
     }
 
-    fun update(
-        task: Task,
-        title: String? = null,
-        notes: String? = null,
-        listId: Long? = null,
-        priority: Priority? = null
-    ) {
+    fun save(task: Task, subtasks: List<com.example.testapp.domain.model.Subtask>) {
+        if (task.title.isBlank()) return
         viewModelScope.launch {
-            val updated = task.copy(
-                title = title ?: task.title,
-                notes = notes ?: task.notes,
-                listId = listId ?: task.listId,
-                priority = priority ?: task.priority
-            )
-            taskRepo.upsert(updated, task.tags.map { it.id }, task.subtasks)
+            taskRepo.upsert(task, task.tags.map { it.id }, subtasks)
         }
     }
 }

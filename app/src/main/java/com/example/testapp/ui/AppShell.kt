@@ -15,12 +15,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import com.example.testapp.ui.feature.appearance.AppearanceScreen
 import com.example.testapp.ui.feature.calendar.CalendarScreen
 import com.example.testapp.ui.feature.focus.FocusScreen
@@ -32,7 +30,6 @@ import com.example.testapp.ui.feature.settings.SettingsScreen
 import com.example.testapp.ui.feature.settings.SettingsViewModel
 import com.example.testapp.ui.feature.stats.StatsScreen
 import com.example.testapp.ui.feature.tabbarconfig.TabBarConfigScreen
-import com.example.testapp.ui.feature.taskedit.TaskEditScreen
 import com.example.testapp.ui.feature.tasks.TasksScreen
 import com.example.testapp.ui.navigation.Routes
 import com.example.testapp.ui.navigation.Tab
@@ -108,24 +105,9 @@ fun AppShell(onCheckForUpdate: () -> Unit) {
             startDestination = Routes.TASKS,
             modifier = Modifier.fillMaxSize().padding(padding)
         ) {
-            composable(Routes.TASKS) {
-                TasksScreen(
-                    onTaskClick = { id -> navController.navigate(Routes.taskEdit(id)) },
-                    onAddTask = { navController.navigate(Routes.taskEdit(0)) }
-                )
-            }
-            composable(Routes.CALENDAR) {
-                CalendarScreen(
-                    onTaskClick = { id -> navController.navigate(Routes.taskEdit(id)) },
-                    onAddTask = { navController.navigate(Routes.taskEdit(0)) }
-                )
-            }
-            composable(Routes.MATRIX) {
-                MatrixScreen(
-                    onTaskClick = { id -> navController.navigate(Routes.taskEdit(id)) },
-                    onAddTask = { navController.navigate(Routes.taskEdit(0)) }
-                )
-            }
+            composable(Routes.TASKS) { TasksScreen() }
+            composable(Routes.CALENDAR) { CalendarScreen() }
+            composable(Routes.MATRIX) { MatrixScreen() }
             composable(Routes.FOCUS) { FocusScreen() }
             composable(Routes.HABITS_TAB) {
                 HabitsScreen(onBack = { navController.popBackStack() })
@@ -157,13 +139,6 @@ fun AppShell(onCheckForUpdate: () -> Unit) {
             }
             composable(Routes.STATS) {
                 StatsScreen(onBack = { navController.popBackStack() })
-            }
-            composable(
-                route = Routes.TASK_EDIT,
-                arguments = listOf(navArgument("taskId") { type = NavType.LongType })
-            ) { backStack ->
-                val id = backStack.arguments?.getLong("taskId") ?: 0L
-                TaskEditScreen(taskId = id, onBack = { navController.popBackStack() })
             }
             composable(Routes.LISTS) {
                 ListsScreen(onBack = { navController.popBackStack() })
