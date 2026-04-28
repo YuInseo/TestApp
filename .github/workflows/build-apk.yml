@@ -32,7 +32,34 @@ jobs:
           gradle-version: "8.7"
 
       - name: Build debug APK
-        run: gradle assembleDebug --no-daemon --stacktrace
+        id: build
+        run: gradle assembleDebug --no-daemon --stacktrace 2>&1 | tee build.log
+
+      - name: Capture build log on failure
+        if: failure()
+        run: |
+          tail -c 100000 build.log > build-tail.log || true
+          ls -la build*.log || true
+
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build*.log
+
+      - name: Publish build log to release on failure
+        if: failure()
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest-debug
+          name: Latest Debug Build
+          body: |
+            BUILD FAILED for ${{ github.sha }}.
+            See build-tail.log attached for last ~100KB of log output.
+          files: build-tail.log
+          prerelease: true
+          make_latest: "false"
 
       - name: Compute version metadata
         id: meta
