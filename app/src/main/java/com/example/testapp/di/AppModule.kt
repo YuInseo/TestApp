@@ -47,7 +47,7 @@ val appModule = module {
     viewModel { (taskId: Long) -> TaskEditViewModel(get(), get(), get(), get(), taskId) }
     viewModel { ListsViewModel(get()) }
     viewModel { CalendarViewModel(get()) }
-    viewModel { MatrixViewModel(get()) }
+    viewModel { MatrixViewModel(get(), get(), get()) }
     viewModel { FocusViewModel(get(), get()) }
     viewModel { SettingsViewModel(get(), get()) }
     viewModel { UpdateViewModel(get(), get()) }

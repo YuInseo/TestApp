@@ -36,6 +36,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -58,6 +61,7 @@ fun MatrixScreen(
     vm: MatrixViewModel = koinViewModel()
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
+    var showQuickAdd by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -81,7 +85,7 @@ fun MatrixScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = onAddTask,
+                onClick = { showQuickAdd = true },
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary
             ) {
@@ -137,6 +141,13 @@ fun MatrixScreen(
                 )
             }
         }
+    }
+
+    if (showQuickAdd) {
+        MatrixQuickAddSheet(
+            onDismiss = { showQuickAdd = false },
+            onSubmit = { text, quadrant -> vm.quickAdd(text, quadrant) }
+        )
     }
 }
 

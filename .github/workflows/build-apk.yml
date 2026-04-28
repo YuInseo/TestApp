@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - claude/android-dev-setup-AVtqY
+      - claude/add-iterative-functionality-3xE0w
       - main
     paths-ignore:
       - 'build-logs/**'
