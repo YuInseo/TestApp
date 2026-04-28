@@ -67,7 +67,7 @@ fun TaskDetailSheet(
     onDismiss: () -> Unit,
     onUpdate: (title: String?, notes: String?, listId: Long?, priority: Priority?) -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     var title by remember(task.id) { mutableStateOf(task.title) }
     var notes by remember(task.id) { mutableStateOf(task.notes) }
     var listId by remember(task.id) { mutableStateOf(task.listId) }
@@ -99,7 +99,6 @@ fun TaskDetailSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 360.dp)
                 .padding(horizontal = 16.dp, vertical = 12.dp)
                 .windowInsetsPadding(WindowInsets.ime)
         ) {
@@ -205,8 +204,7 @@ fun TaskDetailSheet(
                 }
             )
 
-            Spacer(Modifier.weight(1f))
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(16.dp))
 
             Row(
                 horizontalArrangement = Arrangement.spacedBy(20.dp),

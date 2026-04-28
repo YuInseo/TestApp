@@ -79,6 +79,7 @@ fun MatrixScreen(
     var showQuickAdd by remember { mutableStateOf(false) }
     var drag by remember { mutableStateOf<DragState?>(null) }
     val quadrantBounds = remember { androidx.compose.runtime.mutableStateMapOf<Quadrant, Rect>() }
+    var rootOrigin by remember { mutableStateOf(Offset.Zero) }
     var detailTask by remember { mutableStateOf<Task?>(null) }
 
     Scaffold(
@@ -113,7 +114,12 @@ fun MatrixScreen(
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         val highlight = drag?.pointer?.let { findQuadrantAt(it, quadrantBounds) }
-        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .onGloballyPositioned { rootOrigin = it.boundsInWindow().topLeft }
+        ) {
             Column(
                 modifier = Modifier.fillMaxSize().padding(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -217,9 +223,11 @@ fun MatrixScreen(
                 Box(
                     modifier = Modifier
                         .offset {
+                            val halfPreview = with(density) { 100.dp.toPx() }
+                            val centerY = with(density) { 18.dp.toPx() }
                             IntOffset(
-                                (d.pointer.x - with(density) { 100.dp.toPx() }).roundToInt(),
-                                (d.pointer.y - with(density) { 24.dp.toPx() }).roundToInt()
+                                (d.pointer.x - rootOrigin.x - halfPreview).roundToInt(),
+                                (d.pointer.y - rootOrigin.y - centerY).roundToInt()
                             )
                         }
                         .zIndex(10f)
