@@ -64,6 +64,44 @@ class MatrixViewModel(
 
     fun toggle(task: Task) = viewModelScope.launch { repo.setCompleted(task.id, !task.completed) }
 
+    fun moveToQuadrant(task: Task, quadrant: Quadrant) {
+        val (priority, dueAt) = quadrantDefaults(quadrant)
+        viewModelScope.launch {
+            val effectiveDue = when (quadrant) {
+                Quadrant.Q1, Quadrant.Q3 -> dueAt
+                Quadrant.Q2, Quadrant.Q4 -> {
+                    val today0 = DateUtils.startOfDay()
+                    val tomorrow0 = DateUtils.addDays(today0, 1)
+                    if (task.dueAt != null && task.dueAt >= tomorrow0) task.dueAt else null
+                }
+            }
+            val tagIds = task.tags.map { it.id }
+            repo.upsert(
+                task.copy(priority = priority, dueAt = effectiveDue),
+                tagIds,
+                task.subtasks
+            )
+        }
+    }
+
+    fun update(
+        task: Task,
+        title: String? = null,
+        notes: String? = null,
+        listId: Long? = null,
+        priority: Priority? = null
+    ) {
+        viewModelScope.launch {
+            val updated = task.copy(
+                title = title ?: task.title,
+                notes = notes ?: task.notes,
+                listId = listId ?: task.listId,
+                priority = priority ?: task.priority
+            )
+            repo.upsert(updated, task.tags.map { it.id }, task.subtasks)
+        }
+    }
+
     fun quickAdd(
         rawTitle: String,
         notes: String,
