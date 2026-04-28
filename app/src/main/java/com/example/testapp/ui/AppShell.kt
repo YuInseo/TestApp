@@ -19,6 +19,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.testapp.ui.feature.appearance.AppearanceScreen
 import com.example.testapp.ui.feature.calendar.CalendarScreen
 import com.example.testapp.ui.feature.focus.FocusScreen
 import com.example.testapp.ui.feature.habits.HabitsScreen
@@ -111,6 +112,7 @@ fun AppShell(onCheckForUpdate: () -> Unit) {
                 MoreScreen(
                     onLists = { navController.navigate(Routes.LISTS) },
                     onSettings = { navController.navigate(Routes.SETTINGS) },
+                    onAppearance = { navController.navigate(Routes.APPEARANCE) },
                     onHabits = { navController.navigate(Routes.HABITS) },
                     onStats = { navController.navigate(Routes.STATS) },
                     onCheckForUpdate = onCheckForUpdate
@@ -137,6 +139,9 @@ fun AppShell(onCheckForUpdate: () -> Unit) {
                     onBack = { navController.popBackStack() },
                     onCheckForUpdate = onCheckForUpdate
                 )
+            }
+            composable(Routes.APPEARANCE) {
+                AppearanceScreen(onBack = { navController.popBackStack() })
             }
         }
     }

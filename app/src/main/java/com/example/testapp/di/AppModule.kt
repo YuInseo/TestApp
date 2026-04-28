@@ -13,6 +13,7 @@ import com.example.testapp.notification.ReminderScheduler
 import com.example.testapp.ui.feature.calendar.CalendarViewModel
 import com.example.testapp.ui.feature.focus.FocusViewModel
 import com.example.testapp.ui.feature.habits.HabitsViewModel
+import com.example.testapp.ui.feature.appearance.AppearanceViewModel
 import com.example.testapp.ui.feature.lists.ListsViewModel
 import com.example.testapp.ui.feature.matrix.MatrixViewModel
 import com.example.testapp.ui.feature.settings.SettingsViewModel
@@ -50,6 +51,7 @@ val appModule = module {
     viewModel { MatrixViewModel(get(), get(), get()) }
     viewModel { FocusViewModel(get(), get()) }
     viewModel { SettingsViewModel(get(), get()) }
+    viewModel { AppearanceViewModel(get()) }
     viewModel { UpdateViewModel(get(), get()) }
     viewModel { HabitsViewModel(get()) }
     viewModel { StatsViewModel(get(), get()) }

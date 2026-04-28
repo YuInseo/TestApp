@@ -51,6 +51,7 @@ import com.example.testapp.BuildConfig
 fun MoreScreen(
     onLists: () -> Unit,
     onSettings: () -> Unit,
+    onAppearance: () -> Unit,
     onHabits: () -> Unit,
     onStats: () -> Unit,
     onCheckForUpdate: () -> Unit
@@ -87,7 +88,7 @@ fun MoreScreen(
             Spacer(Modifier.height(12.dp))
 
             CardSection {
-                MoreItem(Icons.Filled.Palette, "외관", onSettings)
+                MoreItem(Icons.Filled.Palette, "외관", onAppearance)
                 Divider()
                 MoreItem(Icons.Filled.AccessTime, "날짜 & 시간", onSettings)
                 Divider()

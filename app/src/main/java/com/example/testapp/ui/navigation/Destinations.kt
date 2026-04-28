@@ -23,6 +23,7 @@ object Routes {
     const val TASK_EDIT = "task_edit/{taskId}"
     const val LISTS = "lists"
     const val SETTINGS = "settings"
+    const val APPEARANCE = "appearance"
     const val HABITS = "habits"
     const val STATS = "stats"
 
