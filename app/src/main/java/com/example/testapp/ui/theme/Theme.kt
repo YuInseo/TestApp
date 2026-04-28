@@ -13,7 +13,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.isSp
+import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import com.example.testapp.data.preferences.AccentPreset
@@ -135,4 +135,4 @@ private fun scaledTypography(scale: Float): Typography {
 }
 
 private fun TextUnit.scale(factor: Float): TextUnit =
-    if (isSp) (value * factor).sp else this
+    if (type == TextUnitType.Sp) (value * factor).sp else this

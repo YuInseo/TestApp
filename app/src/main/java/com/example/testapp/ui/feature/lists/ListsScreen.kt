@@ -29,7 +29,7 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.HexagonOutlined
+import androidx.compose.material.icons.outlined.Hexagon
 import androidx.compose.material.icons.filled.Inbox
 import androidx.compose.material.icons.filled.LocalOffer
 import androidx.compose.material.icons.filled.Menu
@@ -245,7 +245,7 @@ private fun SidebarHeader(onBack: () -> Unit) {
             Icon(Icons.Filled.NotificationsNone, contentDescription = "알림")
         }
         IconButton(onClick = { /* settings */ }) {
-            Icon(Icons.Filled.HexagonOutlined, contentDescription = "설정")
+            Icon(Icons.Outlined.Hexagon, contentDescription = "설정")
         }
     }
 }
