@@ -44,6 +44,7 @@ object DateUtils {
 
     fun formatDate(time: Long): String = fullDateFormat.format(Date(time))
     fun formatTime(time: Long): String = timeFormat.format(Date(time))
+    fun formatDateTime(time: Long): String = "${formatDate(time)} ${formatTime(time)}"
 
     fun shortRelativeDate(time: Long): String {
         val today0 = startOfDay()
