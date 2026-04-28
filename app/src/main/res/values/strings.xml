@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">TestApp</string>
+    <string name="app_name">TickTickClone</string>
+    <string name="widget_description">오늘의 할 일</string>
 </resources>
