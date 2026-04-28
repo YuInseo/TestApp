@@ -1,0 +1,133 @@
+package com.example.testapp.ui
+
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.example.testapp.ui.feature.calendar.CalendarScreen
+import com.example.testapp.ui.feature.focus.FocusScreen
+import com.example.testapp.ui.feature.lists.ListsScreen
+import com.example.testapp.ui.feature.matrix.MatrixScreen
+import com.example.testapp.ui.feature.more.MoreScreen
+import com.example.testapp.ui.feature.settings.SettingsScreen
+import com.example.testapp.ui.feature.taskedit.TaskEditScreen
+import com.example.testapp.ui.feature.tasks.TasksScreen
+import com.example.testapp.ui.navigation.Routes
+import com.example.testapp.ui.navigation.Tab
+
+@Composable
+fun AppShell(onCheckForUpdate: () -> Unit) {
+    val navController = rememberNavController()
+    val backEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = backEntry?.destination?.route
+
+    val tabRoutes = Tab.entries.map { it.route }.toSet()
+    val showBottomBar = currentRoute in tabRoutes
+
+    Scaffold(
+        bottomBar = {
+            if (showBottomBar) {
+                NavigationBar(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                    tonalElevation = 0.dp
+                ) {
+                    Tab.entries.forEach { tab ->
+                        val selected = currentRoute == tab.route
+                        NavigationBarItem(
+                            selected = selected,
+                            onClick = {
+                                if (!selected) {
+                                    navController.navigate(tab.route) {
+                                        popUpTo(navController.graph.startDestinationId) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                }
+                            },
+                            icon = {
+                                Icon(
+                                    if (selected) tab.iconSelected else tab.iconUnselected,
+                                    contentDescription = tab.label
+                                )
+                            },
+                            label = null,
+                            alwaysShowLabel = false,
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = MaterialTheme.colorScheme.primary,
+                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                indicatorColor = Color.Transparent
+                            )
+                        )
+                    }
+                }
+            }
+        },
+        containerColor = MaterialTheme.colorScheme.background
+    ) { padding ->
+        NavHost(
+            navController = navController,
+            startDestination = Routes.TASKS,
+            modifier = Modifier.fillMaxSize().padding(padding)
+        ) {
+            composable(Routes.TASKS) {
+                TasksScreen(
+                    onTaskClick = { id -> navController.navigate(Routes.taskEdit(id)) },
+                    onAddTask = { navController.navigate(Routes.taskEdit(0)) }
+                )
+            }
+            composable(Routes.CALENDAR) {
+                CalendarScreen(
+                    onTaskClick = { id -> navController.navigate(Routes.taskEdit(id)) },
+                    onAddTask = { navController.navigate(Routes.taskEdit(0)) }
+                )
+            }
+            composable(Routes.MATRIX) {
+                MatrixScreen(
+                    onTaskClick = { id -> navController.navigate(Routes.taskEdit(id)) },
+                    onAddTask = { navController.navigate(Routes.taskEdit(0)) }
+                )
+            }
+            composable(Routes.FOCUS) { FocusScreen() }
+            composable(Routes.MORE) {
+                MoreScreen(
+                    onLists = { navController.navigate(Routes.LISTS) },
+                    onSettings = { navController.navigate(Routes.SETTINGS) },
+                    onCheckForUpdate = onCheckForUpdate
+                )
+            }
+            composable(
+                route = Routes.TASK_EDIT,
+                arguments = listOf(navArgument("taskId") { type = NavType.LongType })
+            ) { backStack ->
+                val id = backStack.arguments?.getLong("taskId") ?: 0L
+                TaskEditScreen(taskId = id, onBack = { navController.popBackStack() })
+            }
+            composable(Routes.LISTS) {
+                ListsScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Routes.SETTINGS) {
+                SettingsScreen(
+                    onBack = { navController.popBackStack() },
+                    onCheckForUpdate = onCheckForUpdate
+                )
+            }
+        }
+    }
+}

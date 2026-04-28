@@ -8,7 +8,10 @@ import com.example.testapp.data.repository.TagRepository
 import com.example.testapp.data.repository.TaskListRepository
 import com.example.testapp.data.repository.TaskRepository
 import com.example.testapp.notification.ReminderScheduler
+import com.example.testapp.ui.feature.calendar.CalendarViewModel
+import com.example.testapp.ui.feature.focus.FocusViewModel
 import com.example.testapp.ui.feature.lists.ListsViewModel
+import com.example.testapp.ui.feature.matrix.MatrixViewModel
 import com.example.testapp.ui.feature.settings.SettingsViewModel
 import com.example.testapp.ui.feature.taskedit.TaskEditViewModel
 import com.example.testapp.ui.feature.tasks.TasksViewModel
@@ -38,6 +41,9 @@ val appModule = module {
     viewModel { TasksViewModel(get(), get(), get()) }
     viewModel { (taskId: Long) -> TaskEditViewModel(get(), get(), get(), get(), taskId) }
     viewModel { ListsViewModel(get()) }
+    viewModel { CalendarViewModel(get()) }
+    viewModel { MatrixViewModel(get()) }
+    viewModel { FocusViewModel(get(), get()) }
     viewModel { SettingsViewModel(get(), get()) }
     viewModel { UpdateViewModel(get(), get()) }
 }

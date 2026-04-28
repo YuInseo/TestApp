@@ -1,65 +1,89 @@
 package com.example.testapp.ui.theme
 
 import android.app.Activity
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
+object AppColors {
+    val Accent = Color(0xFF3B82F6)
+    val AccentSoft = Color(0xFF60A5FA)
+    val Overdue = Color(0xFFEF4444)
+    val Upcoming = Color(0xFF60A5FA)
+    val Done = Color(0xFF6B7280)
+    val DotIndicator = Color(0xFF3B82F6)
+}
+
 private val DarkColorScheme = darkColorScheme(
-    primary = Color(0xFF80B4FF),
-    onPrimary = Color(0xFF002F66),
-    primaryContainer = Color(0xFF004591),
-    onPrimaryContainer = Color(0xFFD6E2FF),
-    secondary = Color(0xFFBAC6DC),
-    tertiary = Color(0xFFD9BFE0),
-    background = Color(0xFF1A1C1E),
-    surface = Color(0xFF1A1C1E),
-    surfaceVariant = Color(0xFF44474E)
+    primary = AppColors.Accent,
+    onPrimary = Color.White,
+    primaryContainer = Color(0xFF1E3A8A),
+    onPrimaryContainer = Color(0xFFDBEAFE),
+    secondary = Color(0xFF94A3B8),
+    onSecondary = Color.White,
+    tertiary = Color(0xFFFB923C),
+    background = Color(0xFF000000),
+    onBackground = Color(0xFFF5F5F5),
+    surface = Color(0xFF1A1A1A),
+    onSurface = Color(0xFFF5F5F5),
+    surfaceVariant = Color(0xFF262626),
+    onSurfaceVariant = Color(0xFF9CA3AF),
+    surfaceContainer = Color(0xFF1A1A1A),
+    surfaceContainerHigh = Color(0xFF242424),
+    surfaceContainerHighest = Color(0xFF2C2C2E),
+    surfaceContainerLow = Color(0xFF111111),
+    outline = Color(0xFF3F3F46),
+    outlineVariant = Color(0xFF27272A),
+    error = AppColors.Overdue,
+    onError = Color.White
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Color(0xFF1F60C8),
-    onPrimary = Color(0xFFFFFFFF),
-    primaryContainer = Color(0xFFD6E2FF),
-    onPrimaryContainer = Color(0xFF001A41),
-    secondary = Color(0xFF565E71),
-    tertiary = Color(0xFF705574),
-    background = Color(0xFFF8F9FF),
-    surface = Color(0xFFF8F9FF),
-    surfaceVariant = Color(0xFFE0E2EC)
+    primary = AppColors.Accent,
+    onPrimary = Color.White,
+    primaryContainer = Color(0xFFDBEAFE),
+    onPrimaryContainer = Color(0xFF1E3A8A),
+    secondary = Color(0xFF64748B),
+    onSecondary = Color.White,
+    tertiary = Color(0xFFEA580C),
+    background = Color(0xFFFAFAFA),
+    onBackground = Color(0xFF111111),
+    surface = Color(0xFFFFFFFF),
+    onSurface = Color(0xFF111111),
+    surfaceVariant = Color(0xFFF1F5F9),
+    onSurfaceVariant = Color(0xFF64748B),
+    surfaceContainer = Color(0xFFF8FAFC),
+    surfaceContainerHigh = Color(0xFFF1F5F9),
+    surfaceContainerHighest = Color(0xFFE2E8F0),
+    surfaceContainerLow = Color(0xFFFFFFFF),
+    outline = Color(0xFFCBD5E1),
+    outlineVariant = Color(0xFFE2E8F0),
+    error = AppColors.Overdue
 )
 
 @Composable
 fun AppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val ctx = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(ctx) else dynamicLightColorScheme(ctx)
-        }
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
+    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as? Activity)?.window ?: return@SideEffect
             window.statusBarColor = colorScheme.background.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+            window.navigationBarColor = colorScheme.background.toArgb()
+            val controller = WindowCompat.getInsetsController(window, view)
+            controller.isAppearanceLightStatusBars = !darkTheme
+            controller.isAppearanceLightNavigationBars = !darkTheme
         }
     }
     MaterialTheme(colorScheme = colorScheme, content = content)
